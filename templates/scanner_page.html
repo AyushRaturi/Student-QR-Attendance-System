@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}QR Scanner{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <h2>QR Code Scanner</h2>
+        
+        <!-- Current Subject Display -->
+        <div class="alert alert-info mb-3" id="currentSubjectBox">
+            <strong>Current Subject:</strong> <span id="currentSubjectText">Loading...</span>
+            <a href="/subject" class="btn btn-sm btn-outline-primary float-end">Change Subject</a>
+        </div>
+        
+        <div class="text-center">
+            <button id="startBtn" class="btn btn-success btn-lg mb-3">Start Camera</button>
+            <video id="video" width="100%" height="400" style="display: none; margin: 0 auto; border: 2px solid #000000; max-width: 500px;"></video>
+            <canvas id="canvas" style="display: none;"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Student Details Modal -->
+<div class="modal fade" id="studentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Attendance Marked</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="studentDetails">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script>
+// Load current subject on page load
+document.addEventListener('DOMContentLoaded', loadCurrentSubject);
+
+async function loadCurrentSubject() {
+    try {
+        const response = await fetch('/get-subjects');
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('currentSubjectText').textContent = 
+                `${data.current.subject_id} - ${data.current.subject_name}`;
+        }
+    } catch (error) {
+        console.error('Failed to load current subject:', error);
+    }
+}
+
+// QR Scanner
+let video = document.getElementById('video');
+let canvas = document.getElementById('canvas');
+let context = canvas.getContext('2d');
+let scanning = false;
+
+document.getElementById('startBtn').addEventListener('click', startCamera);
+
+async function startCamera() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        video.srcObject = stream;
+        video.style.display = 'block';
+        document.getElementById('startBtn').textContent = 'Scanning...';
+        document.getElementById('startBtn').disabled = true;
+        
+        video.addEventListener('loadedmetadata', () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            scanning = true;
+            scanQRCode();
+        });
+        
+        video.play();
+    } catch (error) {
+        alert('Camera access denied or not available');
+    }
+}
+
+function scanQRCode() {
+    if (!scanning) return;
+    
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height);
+    
+    if (code) {
+        processQRCode(code.data);
+    } else {
+        requestAnimationFrame(scanQRCode);
+    }
+}
+
+async function processQRCode(rollNo) {
+    scanning = false;
+    
+    try {
+        const response = await fetch('/scan', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ roll_no: rollNo })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showStudentDetails(result.student);
+        } else {
+            alert('Student not found: ' + rollNo);
+        }
+    } catch (error) {
+        alert('Scan failed: ' + error.message);
+    }
+    
+    // Reset scanner
+    setTimeout(() => {
+        document.getElementById('startBtn').textContent = 'Start Camera';
+        document.getElementById('startBtn').disabled = false;
+        video.style.display = 'none';
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+        }
+    }, 2000);
+}
+
+function showStudentDetails(student) {
+    document.getElementById('studentDetails').innerHTML = `
+        <div class="text-center">
+            <h4>${student.name}</h4>
+            <p><strong>Roll Number:</strong> ${student.roll_no}</p>
+            <p><strong>Subject:</strong> ${student.subject_id}</p>
+            <p class="text-muted">Scanned at: ${new Date().toLocaleString()}</p>
+            <p class="text-warning">Closing in <span id="countdown">3</span> seconds...</p>
+        </div>
+    `;
+    const modal = new bootstrap.Modal(document.getElementById('studentModal'));
+    modal.show();
+    
+    // 3 second countdown timer
+    let countdown = 3;
+    const timer = setInterval(() => {
+        countdown--;
+        const countdownEl = document.getElementById('countdown');
+        if (countdownEl) {
+            countdownEl.textContent = countdown;
+        }
+        if (countdown <= 0) {
+            clearInterval(timer);
+            modal.hide();
+        }
+    }, 1000);
+}
+</script>
+{% endblock %}

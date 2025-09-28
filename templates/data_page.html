@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Data Logs{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Database Records</h2>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5>Students</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="studentsTable">Loading...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5>Subjects</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="subjectsTable">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5>Attendance Records</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="attendanceTable">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <button class="btn btn-danger" onclick="clearAllData()">Clear All Data</button>
+            <button class="btn btn-secondary" onclick="loadData()">Refresh Data</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', loadData);
+
+async function loadData() {
+    try {
+        const response = await fetch('/data');
+        const data = await response.json();
+        
+        if (data.error) {
+            document.getElementById('studentsTable').innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+            return;
+        }
+        
+        // Display Students
+        const students = data.database1_student_data.students;
+        if (students.length > 0) {
+            let studentsHtml = `
+                <table class="table table-sm">
+                    <thead><tr><th>Roll No</th><th>Name</th></tr></thead>
+                    <tbody>
+            `;
+            students.forEach(student => {
+                studentsHtml += `<tr><td>${student.roll_no}</td><td>${student.name}</td></tr>`;
+            });
+            studentsHtml += '</tbody></table>';
+            document.getElementById('studentsTable').innerHTML = studentsHtml;
+        } else {
+            document.getElementById('studentsTable').innerHTML = '<p class="text-muted">No students registered</p>';
+        }
+        
+        // Display Subjects
+        const subjects = data.database1_student_data.subjects;
+        if (subjects.length > 0) {
+            let subjectsHtml = `
+                <table class="table table-sm">
+                    <thead><tr><th>Subject ID</th><th>Subject Name</th></tr></thead>
+                    <tbody>
+            `;
+            subjects.forEach(subject => {
+                subjectsHtml += `<tr><td>${subject.subject_id}</td><td>${subject.subject_name}</td></tr>`;
+            });
+            subjectsHtml += '</tbody></table>';
+            document.getElementById('subjectsTable').innerHTML = subjectsHtml;
+        } else {
+            document.getElementById('subjectsTable').innerHTML = '<p class="text-muted">No subjects available</p>';
+        }
+        
+        // Display Attendance
+        const attendance = data.database2_attendance.attendance;
+        if (attendance.length > 0) {
+            let attendanceHtml = `
+                <table class="table table-sm">
+                    <thead><tr><th>Log ID</th><th>Roll No</th><th>Subject</th><th>Date/Time</th><th>Status</th></tr></thead>
+                    <tbody>
+            `;
+            attendance.forEach(record => {
+                attendanceHtml += `
+                    <tr>
+                        <td>${record.log_id}</td>
+                        <td>${record.roll_no}</td>
+                        <td>${record.subject_id}</td>
+                        <td>${record.datetime}</td>
+                        <td><span class="badge bg-success">${record.status}</span></td>
+                    </tr>
+                `;
+            });
+            attendanceHtml += '</tbody></table>';
+            document.getElementById('attendanceTable').innerHTML = attendanceHtml;
+        } else {
+            document.getElementById('attendanceTable').innerHTML = '<p class="text-muted">No attendance records</p>';
+        }
+        
+    } catch (error) {
+        console.error('Failed to load data:', error);
+        document.getElementById('studentsTable').innerHTML = '<div class="alert alert-danger">Failed to load data</div>';
+    }
+}
+
+async function clearAllData() {
+    if (!confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/clear-data', { method: 'POST' });
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('All data cleared successfully');
+            loadData();
+        } else {
+            alert('Failed to clear data: ' + result.error);
+        }
+    } catch (error) {
+        alert('Clear failed: ' + error.message);
+    }
+}
+</script>
+{% endblock %}
