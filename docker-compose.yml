@@ -9,3 +9,4 @@ services:
       - ./qr_codes:/app/qr_codes
       - ./data:/app/data
     restart: unless-stopped
+    container_name: minor-project
