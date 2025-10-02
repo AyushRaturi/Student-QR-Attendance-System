@@ -3,112 +3,328 @@
 <head>
     <title>{% block title %}Student QR System{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #ffffff;
-            --text-color: #000000;
+            --bg-color: #f8f9fa;
+            --text-color: #212529;
             --card-bg: #ffffff;
             --border-color: #dee2e6;
-            --nav-bg: #007bff;
+            --nav-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --nav-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
         [data-theme="dark"] {
-            --bg-color: #1a1a1a;
-            --text-color: #ffffff;
-            --card-bg: #2d2d2d;
-            --border-color: #404040;
-            --nav-bg: #0d1117;
+            --bg-color: #0d1117;
+            --text-color: #f0f6fc;
+            --card-bg: #161b22;
+            --border-color: #30363d;
+            --nav-bg: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%);
+            --nav-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            background-color: var(--bg-color);
+            background: var(--bg-color);
             color: var(--text-color);
-            transition: background-color 0.3s, color 0.3s;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: all 0.3s ease;
+            min-height: 100vh;
+        }
+        
+        [data-theme="dark"] body {
+            background: radial-gradient(ellipse at top, #0d1117 0%, #010409 100%);
+        }
+        
+        /* Fancy Navbar Styles */
+        .fancy-navbar {
+            background: var(--nav-bg);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--nav-shadow);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #fff !important;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .brand-icon {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar-brand:hover .brand-icon {
+            background: rgba(255,255,255,0.3);
+            transform: rotate(5deg) scale(1.1);
+        }
+        
+        .navbar-nav {
+            gap: 5px;
+        }
+        
+        .nav-item {
             position: relative;
         }
-        [data-theme="dark"] body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at 20% 30%, rgba(0, 123, 255, 0.1) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 70%, rgba(0, 123, 255, 0.08) 0%, transparent 50%),
-                        radial-gradient(circle at 50% 50%, rgba(0, 123, 255, 0.05) 0%, transparent 70%);
-            pointer-events: none;
-            z-index: -1;
+        
+        .nav-link {
+            color: rgba(255,255,255,0.9) !important;
+            font-weight: 500;
+            padding: 10px 16px !important;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
         }
-        .card, .alert {
-            background-color: var(--card-bg);
-            border-color: var(--border-color);
+        
+        .nav-link:hover {
+            color: #fff !important;
+            background: rgba(255,255,255,0.15);
+            transform: translateY(-2px);
         }
-        .form-control {
-            background-color: var(--card-bg);
-            border-color: var(--border-color);
-            color: var(--text-color);
+        
+        .nav-link.active {
+            background: rgba(255,255,255,0.2);
+            color: #fff !important;
         }
-        .navbar {
-            background-color: var(--nav-bg) !important;
-            transition: background-color 0.3s;
-        }
-        .theme-btn {
-            background: #6c757d;
-            border: none;
-            border-radius: 20px;
+        
+        .theme-toggle {
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 25px;
             padding: 8px 16px;
             color: #fff;
-            font-size: 14px;
-            font-weight: bold;
-            transition: all 0.3s;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .theme-btn:hover {
-            background: #2a2d30;
+        
+        .theme-toggle:hover {
+            background: rgba(255,255,255,0.25);
             transform: scale(1.05);
+            border-color: rgba(255,255,255,0.4);
         }
-        [data-theme="dark"] .theme-btn {
-            background: #282c30;
-            color: #fff;
+        
+        .navbar-toggler {
+            border: none;
+            padding: 4px 8px;
         }
-        [data-theme="dark"] .theme-btn:hover {
-            background: #1c1f22;
+        
+        .navbar-toggler:focus {
+            box-shadow: none;
+        }
+        
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.8%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='m4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+        
+        /* Card and Form Improvements */
+        .card, .alert {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        [data-theme="dark"] .card,
+        [data-theme="dark"] .alert {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .form-control, .form-select {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 991.98px) {
+            .navbar-nav {
+                margin-top: 1rem;
+                padding-top: 1rem;
+                border-top: 1px solid rgba(255,255,255,0.1);
+            }
+            
+            .theme-toggle {
+                margin-top: 1rem;
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Container improvements */
+        .main-container {
+            padding-top: 2rem;
+            min-height: calc(100vh - 80px);
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
+    <nav class="navbar navbar-expand-lg fancy-navbar">
         <div class="container">
-            <a class="navbar-brand" href="/">Student QR System</a>
-            <div class="navbar-nav">
-                <a class="nav-link" href="/">Home</a>
-                <a class="nav-link" href="/register-page">Register</a>
-                <a class="nav-link" href="/scanner-page">Scanner</a>
-                <a class="nav-link" href="/subject">Subject</a>
-                <a class="nav-link" href="/data">Data</a>
-            </div>
-            <button class="theme-btn" onclick="toggleTheme()" id="themeToggle">
-                🌙 Dark
+            <a class="navbar-brand" href="/">
+                <div class="brand-icon">
+                    <i class="fas fa-qrcode"></i>
+                </div>
+                <span>Student QR System</span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
             </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/" data-page="home">
+                            <i class="fas fa-home"></i>
+                            <span>Home</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/register-page" data-page="register">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Register</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/scanner-page" data-page="scanner">
+                            <i class="fas fa-camera"></i>
+                            <span>Scanner</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/subject" data-page="subject">
+                            <i class="fas fa-book"></i>
+                            <span>Subject</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/data-page" data-page="data">
+                            <i class="fas fa-database"></i>
+                            <span>Data</span>
+                        </a>
+                    </li>
+                </ul>
+                
+                <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                    <span id="themeText">Dark</span>
+                </button>
+            </div>
         </div>
     </nav>
 
-    <div class="container mt-4">
+    <div class="container main-container">
         {% block content %}{% endblock %}
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Theme Toggle Functionality
         function toggleTheme() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', newTheme);
-            document.getElementById('themeToggle').innerHTML = newTheme === 'dark' ? '☀️ Light' : '🌙 Dark';
+            
+            const themeIcon = document.getElementById('themeIcon');
+            const themeText = document.getElementById('themeText');
+            
+            if (newTheme === 'dark') {
+                themeIcon.className = 'fas fa-sun';
+                themeText.textContent = 'Light';
+            } else {
+                themeIcon.className = 'fas fa-moon';
+                themeText.textContent = 'Dark';
+            }
+            
             localStorage.setItem('theme', newTheme);
         }
+        
         function loadTheme() {
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
-            document.getElementById('themeToggle').innerHTML = savedTheme === 'dark' ? '☀️ Light' : '🌙 Dark';
+            
+            const themeIcon = document.getElementById('themeIcon');
+            const themeText = document.getElementById('themeText');
+            
+            if (savedTheme === 'dark') {
+                themeIcon.className = 'fas fa-sun';
+                themeText.textContent = 'Light';
+            } else {
+                themeIcon.className = 'fas fa-moon';
+                themeText.textContent = 'Dark';
+            }
         }
-        document.addEventListener('DOMContentLoaded', loadTheme);
+        
+        // Active Page Highlighting
+        function setActivePage() {
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+            
+            // Handle special cases
+            if (currentPath === '/' || currentPath === '/home') {
+                document.querySelector('[data-page="home"]').classList.add('active');
+            } else if (currentPath === '/data') {
+                document.querySelector('[data-page="data"]').classList.add('active');
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTheme();
+            setActivePage();
+        });
+        
+        // Smooth navbar collapse on mobile
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                const navbarCollapse = document.getElementById('navbarNav');
+                if (navbarCollapse.classList.contains('show')) {
+                    bootstrap.Collapse.getInstance(navbarCollapse).hide();
+                }
+            });
+        });
     </script>
     {% block scripts %}{% endblock %}
 </body>
