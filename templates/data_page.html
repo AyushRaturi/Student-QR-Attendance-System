@@ -8,7 +8,7 @@
         <h2>Database Records</h2>
         
         <div class="row mt-4">
-            <div class="col-md-6">
+            <div class="col-lg-6 col-md-12 mb-3">
                 <div class="card">
                     <div class="card-header bg-primary text-white">
                         <h5>Students</h5>
@@ -19,7 +19,7 @@
                 </div>
             </div>
             
-            <div class="col-md-6">
+            <div class="col-lg-6 col-md-12 mb-3">
                 <div class="card">
                     <div class="card-header bg-info text-white">
                         <h5>Subjects</h5>
@@ -44,7 +44,7 @@
             </div>
         </div>
         
-        <div class="mt-4">
+        <div class="mt-4 d-flex flex-wrap gap-2">
             <button class="btn btn-danger" onclick="clearAllData()">Clear All Data</button>
             <button class="btn btn-secondary" onclick="loadData()">Refresh Data</button>
         </div>
@@ -70,14 +70,15 @@ async function loadData() {
         const students = data.database1_student_data.students;
         if (students.length > 0) {
             let studentsHtml = `
-                <table class="table table-sm">
-                    <thead><tr><th>Roll No</th><th>Name</th></tr></thead>
-                    <tbody>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead><tr><th>Roll No</th><th>Name</th></tr></thead>
+                        <tbody>
             `;
             students.forEach(student => {
                 studentsHtml += `<tr><td>${student.roll_no}</td><td>${student.name}</td></tr>`;
             });
-            studentsHtml += '</tbody></table>';
+            studentsHtml += '</tbody></table></div>';
             document.getElementById('studentsTable').innerHTML = studentsHtml;
         } else {
             document.getElementById('studentsTable').innerHTML = '<p class="text-muted">No students registered</p>';
@@ -87,14 +88,15 @@ async function loadData() {
         const subjects = data.database1_student_data.subjects;
         if (subjects.length > 0) {
             let subjectsHtml = `
-                <table class="table table-sm">
-                    <thead><tr><th>Subject ID</th><th>Subject Name</th></tr></thead>
-                    <tbody>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead><tr><th>Subject ID</th><th>Subject Name</th></tr></thead>
+                        <tbody>
             `;
             subjects.forEach(subject => {
                 subjectsHtml += `<tr><td>${subject.subject_id}</td><td>${subject.subject_name}</td></tr>`;
             });
-            subjectsHtml += '</tbody></table>';
+            subjectsHtml += '</tbody></table></div>';
             document.getElementById('subjectsTable').innerHTML = subjectsHtml;
         } else {
             document.getElementById('subjectsTable').innerHTML = '<p class="text-muted">No subjects available</p>';
@@ -104,9 +106,10 @@ async function loadData() {
         const attendance = data.database2_attendance.attendance;
         if (attendance.length > 0) {
             let attendanceHtml = `
-                <table class="table table-sm">
-                    <thead><tr><th>Log ID</th><th>Roll No</th><th>Subject</th><th>Date/Time</th><th>Status</th></tr></thead>
-                    <tbody>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead><tr><th>Log ID</th><th>Roll No</th><th>Subject</th><th>Date/Time</th><th>Status</th></tr></thead>
+                        <tbody>
             `;
             attendance.forEach(record => {
                 attendanceHtml += `
@@ -119,7 +122,7 @@ async function loadData() {
                     </tr>
                 `;
             });
-            attendanceHtml += '</tbody></table>';
+            attendanceHtml += '</tbody></table></div>';
             document.getElementById('attendanceTable').innerHTML = attendanceHtml;
         } else {
             document.getElementById('attendanceTable').innerHTML = '<p class="text-muted">No attendance records</p>';
