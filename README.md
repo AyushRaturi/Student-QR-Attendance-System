@@ -238,6 +238,7 @@ http://localhost:5000
 - Firefox 55+
 - Safari 11+
 - Edge 79+
+- brave
 
 ### Production Deployment
 - HTTPS certificate (required for camera access)
