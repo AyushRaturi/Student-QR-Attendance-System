@@ -4,7 +4,7 @@ services:
   web:
     build: .
     expose:
-      - "5000"
+      - 8000:5000
     volumes:
       - ./qr_codes:/app/qr_codes
       - ./data:/app/data
