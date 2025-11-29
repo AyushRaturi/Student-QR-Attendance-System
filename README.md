@@ -26,7 +26,7 @@ A Flask-based web application that modernizes student attendance tracking throug
 - **Contactless**: Reduces physical interaction and paperwork
 - **Accurate Tracking**: Automatic logging with precise timestamps
 - **Easy Management**: Simple registration and QR generation workflow
-- **Mobile Compatible**: Bootstrap responsive design works on all devices
+-  **Mobile Compatible**: Bootstrap responsive design works on all devices
 - **Offline Capable**: Local SQLite database ensures functionality without internet
 - **Containerized**: Docker support for easy deployment
 - **Cost Effective**: No additional hardware required beyond camera-enabled devices
