@@ -173,7 +173,7 @@ CREATE TABLE attendance (
 - **CSS3**: Bootstrap framework integration
 - **JavaScript ES6+**: Modern async/await patterns
 - **Bootstrap 5.1.3**: Responsive UI framework
-- **jsQR 1.4.0**: Client-side QR code scanning
+- **jsQR 1.4.0**: Client-side QR code scanning 
 
 ### Development Tools
 - **Docker**: Application containerization
