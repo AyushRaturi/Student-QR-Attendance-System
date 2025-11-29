@@ -10,10 +10,3 @@ services:
       - ./data:/app/data
     restart: unless-stopped
     container_name: minor-project
-    networks:
-      - app-network
-
-
-networks:
-  app-network:
-    driver: bridge
