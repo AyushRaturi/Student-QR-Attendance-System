@@ -3,8 +3,8 @@ version: '3.8'
 services:
   web:
     build: .
-    expose:
-      - 8000:5000
+    ports:
+      - "5000:5000"
     volumes:
       - ./qr_codes:/app/qr_codes
       - ./data:/app/data
