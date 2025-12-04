@@ -1,0 +1,43 @@
+pipeline {
+    agent any
+
+    stages {
+
+        stage('Check user') {
+            steps {
+                sh 'whoami'
+            }
+        }
+
+        stage('Checking git & docker') {
+            steps {
+                echo 'Checking Git version'
+                sh 'git --version'
+
+                echo 'Checking Docker version'
+                sh 'docker --version'
+            }
+        }
+
+        stage('Build & Deploy with Docker Compose') {
+            steps {
+                echo 'Running Docker Compose build and deploy...'
+
+                sh '''
+                    docker compose down || true
+                    docker compose up --build
+                '''
+            }
+        }
+
+    }
+
+    post {
+        success {
+            echo "Deployment completed successfully 🚀"
+        }
+        failure {
+            echo "Deployment failed ❌"
+        }
+    }
+}
