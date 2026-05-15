@@ -1,43 +1,158 @@
 pipeline {
     agent any
-
-    stages {
-
-        stage('Check user') {
-            steps {
-                sh 'whoami'
-            }
-        }
-
-        stage('Checking git & docker') {
-            steps {
-                echo 'Checking Git version'
-                sh 'git --version'
-
-                echo 'Checking Docker version'
-                sh 'docker --version'
-            }
-        }
-
-        stage('Build & Deploy with Docker Compose') {
-            steps {
-                echo 'Running Docker Compose build and deploy...'
-
-                sh '''
-                    docker compose down || true
-                    docker compose up --build
-                '''
-            }
-        }
-
+  environment {
+        IMAGE_NAME        = "ayushraturi/qr-app-ci"
+        DOCKER_CREDS = credentials('dockerhub-credentials')
+        IMAGE_TAG         = "ayushraturi/qr-app-ci"
+        IMAGE_LATEST      = "latest"
     }
+   stages {
+ 
+        // ─────────────────────────────────────────────
+        // STAGE 1 — Clone Repository
+        // ─────────────────────────────────────────────
+    stage('Clone Repository') {
+        steps {
+            echo "Cloning source code..."
+                git branch: 'main',
+                    url: 'https://github.com/AyushRaturi/Student-QR-Attendance-System'
+            }
+        }
+        
+        // ─────────────────────────────────────────────
+        // STAGE 2 — Static Code Analysis (SonarQube)  
+        // ─────────────────────────────────────────────
+      stage('Code Quality — SonarQube') {
+        steps {
+                echo "Running SonarQube analysis..."
+                // withSonarQubeEnv('SonarQube') {
+                //     sh 'sonar-scanner -Dsonar.projectKey=qr-app'
+                // }
+                sh 'echo "Configure SonarQube scanner here"'
+            }
+        }
+        
+        
+        // ─────────────────────────────────────────────
+        // STAGE 3 — Docker Build
+        // ─────────────────────────────────────────────
+    stage('Docker Build') {
+            steps {
+                echo "Building Docker image: ${IMAGE_TAG}"
+                sh """
+                    docker build \
+                        -t ${IMAGE_TAG} \
+                        -t ${IMAGE_LATEST} .
+                """
+            }
+        }
+        
+        
+        // ─────────────────────────────────────────────
+        // STAGE 4 — Trivy Image Scan
+        // ─────────────────────────────────────────────
+        stage('Security Scan — Trivy') {
+            steps {
+                echo "Scanning image for vulnerabilities..."
+                sh """
+                    trivy image \
+                        --exit-code 0 \
+                        --severity HIGH,CRITICAL \
+                        --format table \
+                        --output trivy-report.txt \
+                        ${IMAGE_TAG}
+                    cat trivy-report.txt
+                """
+                // Change --exit-code to 1 to FAIL the build on CRITICAL findings
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'trivy-report.txt', fingerprint: true
+                }
+            }
+        }
+        
+        
+        
+        // ─────────────────────────────────────────────
+        // STAGE 5 — Login to Docker Hub
+        // ─────────────────────────────────────────────
+      stage('Docker Hub Login') {
+    steps {
+        echo "Authenticating with Docker Hub..."
+        sh '''
+            echo $DOCKER_CREDS_PSW | docker login -u $DOCKER_CREDS_USR --password-stdin
+        '''
+           }
+                                }
+        
 
+         // ─────────────────────────────────────────────
+        // STAGE 6 — Push to Docker Hub
+        // ─────────────────────────────────────────────
+    stage('Docker Push ') {
+     steps {
+        echo "Pushing image to registry..."
+         echo "Pushing Docker image: ${IMAGE_TAG}:${IMAGE_LATEST}"
+        
+                sh """
+                    docker push ${IMAGE_TAG}:${IMAGE_LATEST}
+                """
+           }
+                                }
+                                
+        // ─────────────────────────────────────────────
+        // STAGE 7 — Cleanup Local Images   
+        // ─────────────────────────────────────────────
+        stage('Cleanup') {
+            steps {
+                echo "Removing local Docker images..."
+                sh """
+                    docker rmi ${IMAGE_TAG} || true
+                    docker image prune -f
+                """
+            }
+        }
+        
+   }    
+        
+
+
+
+
+        
+    // ─────────────────────────────────────────────
+    // POST — Notifications & Reporting   
+    // ─────────────────────────────────────────────
     post {
-        success {
-            echo "Deployment completed successfully 🚀"
-        }
-        failure {
-            echo "Deployment failed ❌"
-        }
+    success {
+        echo "Pipeline SUCCESS — Image ${IMAGE_TAG} pushed to Docker Hub."
+
+        emailext(
+            subject: "Build SUCCESS:" ,
+            body: "Build passed",
+            to: "ayushraturi@gmail.com"
+        )
     }
+
+    failure {
+        echo "❌ Pipeline FAILED — check logs for details."
+
+        emailext(
+            subject: "❌ Build FAILED:" ,
+            body: "Build failed",
+            to: "developer@example.com"
+        )
+    }
+
+    always {
+        sh 'docker logout || true'
+        cleanWs()
+            }
+            }
+    
+    
+    
+
+
 }
